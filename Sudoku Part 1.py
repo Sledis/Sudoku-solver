@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 import numpy as np
@@ -30,7 +30,7 @@ def Fill(S,I):
     return [B,a,b]
 
 
-# In[2]:
+# In[3]:
 
 
 def Check(A,I):
@@ -66,41 +66,84 @@ def Check(A,I):
     return B
 
 
-# In[3]:
+# In[75]:
+
+
+def EasyValues(S):
+    #This takes a sudoku, looks through it to find the empty entries. It then calculates the values in the
+    #square, row and collumn, if it covers all buy one number, it fills that number in.
+    #It also counts how many changes are made.
+    Added=0
+    for i in range(9):
+        row=set(S[i,:])       
+        for j in range(9):  
+            Nums=set([0,1,2,3,4,5,6,7,8,9])
+            if S[i,j]==0:
+                collumn=set(S[:,j])
+                alpha=int(np.floor(i/3))
+                beta=int(np.floor(j/3))
+                square=set([S[3*alpha,3*beta],S[3*alpha,3*beta+1],S[3*alpha,3*beta+2],S[3*alpha+1,3*beta],S[3*alpha+1,3*beta+1],S[3*alpha+1,3*beta+2],S[3*alpha+2,3*beta],S[3*alpha+2,3*beta+1],S[3*alpha+2,3*beta+2]])
+                collumn.update(row)
+                collumn.update(square)
+                
+                Nums.difference_update(collumn)
+               
+                
+                if len(Nums)==1:
+                    S[i,j]=list(Nums)[0]
+                    Added+=1
+    return [S,Added]
+    
+
+
+# In[96]:
 
 
 def Solver(S):
+    #We first run through all of the "human/easy" solves. Once it can't find any more it will move on to a back tracking method.
+    A=EasyValues(S)
+    S=A[0]
+    counter=A[1]
+    while counter>0:
+        A=EasyValues(S)
+        S=A[0]
+        counter=A[1]
+        
+        
+        
     B=copy.deepcopy(S)
     n=(B==0).sum()
-    #Solves a sudoku by creating a vector with 1, if it works it guesses the next value. if it doesn't,
-    #it tries all values for that slot until one works, if that doesn't work it moves down one spot and repeats.
-    I=[1]
-    while len(I)<n:
-        if Check(S,I)==True:
-            I.append(1)
-        else:
-            if I[-1]!=9:
-                I[-1]=I[-1]+1
+    
+    if n>0:
+        #Solves a sudoku by creating a vector with 1, if it works it guesses the next value. if it doesn't,
+        #it tries all values for that slot until one works, if that doesn't work it moves down one spot and repeats.
+        I=[1]
+        while len(I)<n:
+            if Check(S,I)==True:
+                I.append(1)
             else:
-                j=-1
+                if I[-1]!=9:
+                    I[-1]=I[-1]+1
+                else:
+                    j=-1
 
-                while I[j]==9:
-                    j=j-1
-                J=I[0:j+1]
+                    while I[j]==9:
+                        j=j-1
+                    J=I[0:j+1]
 
-                J[len(J)-1]+=1
-                I=J
+                    J[len(J)-1]+=1
+                    I=J
 
-    if len(I)==n:
-        while  Check(S,I) is False:
-            I[n-1]=I[n-1]+1
-            
-    B=Fill(B,I)[0]
+        if len(I)==n:
+            while  Check(S,I) is False:
+                I[n-1]=I[n-1]+1
+
+        B=Fill(B,I)[0]
         
     return B
 
 
-# In[4]:
+# In[97]:
 
 
 #4 sudokus.
@@ -109,8 +152,10 @@ A2=np.array([[0,7,0,5,0,0,2,3,0],[0,8,0,0,9,0,5,0,0],[5,0,0,0,0,7,0,6,4],[2,0,0,
 A3=A=np.array([[0,1,3,0,0,7,0,0,2],[0,0,0,0,3,0,0,0,8],[0,4,0,0,0,2,0,0,0],[0,0,9,2,0,1,0,7,5],[0,0,0,0,0,0,0,0,0],[7,8,0,4,0,9,6,0,0],[0,0,0,9,0,0,0,6,0],[8,0,0,0,6,0,0,0,0],[1,0,0,7,0,0,3,9,0]])
 A4=A=np.array([[0,0,3,0,0,0,4,5,0],[9,0,0,0,0,0,0,0,0],[7,2,0,6,0,0,0,0,9],[5,0,0,0,8,4,0,0,2],[0,0,0,1,0,2,0,0,0],[4,0,0,3,6,0,0,0,8],[8,0,0,0,0,6,0,3,7],[0,0,0,0,0,0,0,0,4],[0,7,4,0,0,0,2,0,0]])
 
+A1
 
-# In[5]:
+
+# In[98]:
 
 
 t1=time.perf_counter()
@@ -134,10 +179,4 @@ t2=time.perf_counter()
 Dt4=t2-t1
 #the time for solution of those 4 sudokus.
 print(Dt1,Dt2,Dt3,Dt4)
-
-
-# In[ ]:
-
-
-
 
